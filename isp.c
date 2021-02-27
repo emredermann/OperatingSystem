@@ -77,14 +77,20 @@ void processInput(char commands []){
 }
 
 void getMode(int *N,int *mode){
-    char commands[CommandSize]; 
+//    char commands[CommandSize]; 
     printf("\nRing the format is: <N> <mode> \n");
-    fgets(commands, CommandSize, stdin);
-    commands[strcspn(commands, "\n\r")] = '\0';         // remove the newline at the end
+ //   fgets(commands, CommandSize, stdin);
+//    commands[strcspn(commands, "\n\r")] = '\0';         // remove the newline at the end
     //printf("commands promp is:%s",commands);
-    
-    *N = commands[0]- '0';
-    *mode = commands[2]- '0';
+        int  input [2];
+        scanf("%d %d",&input[0],&input[1]);
+        printf(" N is %d",input[0]);
+        printf(" mode is %d",input[1]);
+        
+        *N = input[0];
+        *mode = input[1];
+ //   *N = commands[0]- '0';
+ //   *mode = commands[2]- '0';
  //   printf("\nMode is %d \n",*mode);
  //   printf("N  is  %d \n",*N);
 }
