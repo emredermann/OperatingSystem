@@ -32,7 +32,6 @@ int IsMultipleCommandParser(char commands[],char * newCommands[]){
         }
         i += 1;
     }
-
     if (newCommands[1] != NULL){
         return 1;
     }
@@ -295,7 +294,9 @@ void parseCommand(char command[], char* argv1[]) {
         if (argv1[i] == NULL) {
             break;
         }
-        i -= (strlen(argv1[i]) == 0);
+        if (strlen(argv1[i]) == 0){
+            i -= 1;
+            }
         i += 1;
     }
 }
