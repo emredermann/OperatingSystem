@@ -1,0 +1,11 @@
+all: shell producer consumer
+
+shell: shell.c
+	gcc -o shell shell.c	
+consumer: consumer.c
+	gcc -o consumer consumer.c
+
+producer: producer.c
+	gcc -o producer producer.c
+
+ 
