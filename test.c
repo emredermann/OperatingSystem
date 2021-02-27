@@ -13,8 +13,8 @@ int main(int argc, char* argv[]) {
     while(1){
         printf("\nisp$: ");
         fgets(commands, CommandSize, stdin);
-        commands[strcspn(commands, "\n\r")] = '\0';
         // Replace line endings with string terminator.
+        commands[strcspn(commands, "\n\r")] = '\0';      
         processInput(commands);
     }
     return 0;
@@ -64,7 +64,7 @@ void processInput(char commands []){
             if (mode == 2){
                 printf("N is :%d\n",N);
                 runMultipleCommandTappedMode(argv1,argv2,N);
-                printf("Mode is : %d",mode);
+    //            printf("Mode is : %d",mode);
                 printf("\nMULTIPLE COMMAND TAPPED MODE EXECUTED");
             }  
 
@@ -125,7 +125,7 @@ void runMultipleCommandNormalMode(char* argv1[], char* argv2[]){
     } else if (pid == 0) { 
     // child 1 created.
         
-        dup2(fd[1], STDOUT_FILENO);
+        dup2(fd[1], 1);
         close(fd[0]);
         close(fd[1]);
         
@@ -147,7 +147,7 @@ void runMultipleCommandNormalMode(char* argv1[], char* argv2[]){
         // Child 2 Process
         else if (pid2 == 0) { 
  
-            dup2(fd[0], STDIN_FILENO); 
+            dup2(fd[0], 0); 
             close(fd[1]);
             close(fd[0]);
             // Exec system call for argv1 in child 2.
@@ -232,26 +232,33 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
         close(fd2[0]);
         char buff[256];
         int readed;
+        int readCalls = 1;
+        int writeCalls = 0;
         int writtenBytes = 0;
-        int counter =0;
+        int transferedData = 0;
+        int readedBytes = 0;
         while( (readed = read(fd[0],&buff,N)) > 0 ){
             writtenBytes = write(fd2[1],buff,readed);
            // printf("Temporary buff is %d \n",writtenBytes);
-            counter += 1;
+           transferedData += writtenBytes +readedBytes;
+            readCalls = 1;
+            writeCalls += 1;
         }
-              printf("Counter is %d \n",counter);
+            
             close(fd[0]);
             close(fd2[1]);
             waitpid(pid,NULL,0);
             waitpid(pid2,NULL,0);
+            printf(" \n \n character-count: %d\nread-call-count: %d\nwrite-call-count: %d \n",transferedData,readCalls,writeCalls);
         }
+     
     }
     close(fd[1]); 
     close(fd2[0]);
     close(fd[0]); 
     close(fd2[1]);
+    
 }
-
 
 // Done
 void runSingleCommand(char* argv1[]){
