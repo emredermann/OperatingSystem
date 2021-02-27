@@ -5,7 +5,12 @@
 #include <stdlib.h>
 #define CommandSize 1500
 
-
+/*
+* Author Emre Derman
+* Operating Systems Project 1
+* Date 28/02/2021
+* Approximate Time: 50-60 hours
+*/
 
 int main(int argc, char* argv[]) {
 
