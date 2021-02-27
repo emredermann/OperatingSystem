@@ -59,19 +59,19 @@ void processInput(char commands []){
              
                 runMultipleCommandNormalMode(argv1,argv2);
 
-                printf("\n MULTIPLE COMMAND NORMAL MODE EXECUTED");
+             //   printf("\n MULTIPLE COMMAND NORMAL MODE EXECUTED");
             } 
             if (mode == 2){
                 printf("N is :%d\n",N);
                 runMultipleCommandTappedMode(argv1,argv2,N);
     //            printf("Mode is : %d",mode);
-                printf("\nMULTIPLE COMMAND TAPPED MODE EXECUTED");
+            //    printf("\nMULTIPLE COMMAND TAPPED MODE EXECUTED");
             }  
 
         }else{
 
             runSingleCommand(argv1);
-            printf("\nSINGLE COMMAND EXECUTED");
+        //    printf("\nSINGLE COMMAND EXECUTED");
     }
     
 }
@@ -94,7 +94,6 @@ int  commandDecider(char commands[],char * argv1,char * argv2){
     char * newCommands [2];
     int tmp = IsMultipleCommandParser(commands,newCommands);
     if(tmp == 1){
-
         parseCommand(newCommands[0],argv1);
         parseCommand(newCommands[1],argv2);
         return 1;
