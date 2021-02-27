@@ -170,7 +170,6 @@ void runMultipleCommandNormalMode(char* argv1[], char* argv2[]){
 
 
 void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
-    
     //First and second pipe
     int fd[2], fd2[2];
     if(pipe(fd) < 0 ){
@@ -190,11 +189,10 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
     
     } else if (pid == 0) { 
         // child 1
-        
         close(fd[0]);
-        close(fd2[0]);
-        close(fd2[1]);
-        dup2(fd[1], 1);
+    //    close(fd2[0]);
+    //    close(fd2[1]);
+        dup2(fd[1],1);
         // Exec system call for argv1 in  child 1.
         status = execvp(argv1[0], argv1);
         if ( status < 0) {
@@ -212,10 +210,8 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
             fprintf(stderr, "%s second fork failed for child.\n");
             return 1;
         }
-
         // Child 2 Process
-        else if (pid2 == 0) { 
-           
+        else if (pid2 == 0) {         
             close(fd2[1]);
             close(fd[0]);
             close(fd[1]);
@@ -230,15 +226,11 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
             if (status >= 0) {
                 fprintf(stderr, "%s Second Execution has been done.\n");
             }      
-
-
-
         } else { 
         // Parent process
-        // tmp buff for change
         close(fd[1]);
         close(fd2[0]);
-        char buff[5000];
+        char buff[256];
         int readed;
         int writtenBytes = 0;
         int counter =0;
@@ -249,7 +241,7 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
         }
               printf("Counter is %d \n",counter);
             close(fd[0]);
-            close(fd[1]);
+            close(fd2[1]);
             waitpid(pid,NULL,0);
             waitpid(pid2,NULL,0);
         }
