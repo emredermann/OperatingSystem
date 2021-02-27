@@ -235,7 +235,6 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
         int readedBytes = 0;
         while( (readed = read(firstPipe[0],&buff,N)) > 0 ){
             writtenBytes = write(secondPipe[1],buff,readed);
-           // printf("Temporary buff is %d \n",writtenBytes);
            transferedData += writtenBytes +readedBytes;
             readCalls = 1;
             writeCalls += 1;
