@@ -54,15 +54,20 @@ void processInput(char commands []){
     if(commandDecider(commands,argv1,argv2) == 1){      
 
             getMode(&N,&mode);
+            
             if (mode == 1){
-        
+             
                 runMultipleCommandNormalMode(argv1,argv2);
+
                 printf("\n MULTIPLE COMMAND NORMAL MODE EXECUTED");
-            }else if (mode == 2){
-         
+            } 
+            if (mode == 2){
+                printf("N is :%d\n",N);
                 runMultipleCommandTappedMode(argv1,argv2,N);
+                printf("Mode is : %d",mode);
                 printf("\nMULTIPLE COMMAND TAPPED MODE EXECUTED");
             }  
+
         }else{
 
             runSingleCommand(argv1);
@@ -73,18 +78,15 @@ void processInput(char commands []){
 
 void getMode(int *N,int *mode){
     char commands[CommandSize]; 
-    printf("\nRing the format is:<N> <mode> \n");
-    fgets(commands, 5, stdin);
-    commands[strcspn(commands, "\n\r")] = '\0'; // remove the newline at the end
+    printf("\nRing the format is: <N> <mode> \n");
+    fgets(commands, CommandSize, stdin);
+    commands[strcspn(commands, "\n\r")] = '\0';         // remove the newline at the end
+    //printf("commands promp is:%s",commands);
     
-    /*
-    for(int i = 0;i < 3;i++){
-        printf("new command values are,%s\n",commands);
-    }
-    */
-    // parseCommand(commands,newCommands);
     *N = commands[0]- '0';
     *mode = commands[2]- '0';
+ //   printf("\nMode is %d \n",*mode);
+ //   printf("N  is  %d \n",*N);
 }
 
 
@@ -168,6 +170,7 @@ void runMultipleCommandNormalMode(char* argv1[], char* argv2[]){
 
 
 void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
+    
     //First and second pipe
     int fd[2], fd2[2];
     if(pipe(fd) < 0 ){
@@ -188,51 +191,65 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
     } else if (pid == 0) { 
         // child 1
         
-        dup2(fd[1], STDOUT_FILENO);
-        close(fd[1]);
-        
+        close(fd[0]);
+        close(fd2[0]);
+        close(fd2[1]);
+        dup2(fd[1], 1);
         // Exec system call for argv1 in  child 1.
         status = execvp(argv1[0], argv1);
         if ( status < 0) {
             fprintf(stderr, "%s Execution of the first command failed.\n");
             return 1;
         }
+        if (status >= 0) {
+                fprintf(stderr, "%s Second Execution has been done.\n");
+            }      
     }
     // Parent process 
     else {
         pid_t pid2 = fork();
         if (pid2 < 0) {
-
-            fprintf(stderr, "%s Fork failed for child 2.\n");
+            fprintf(stderr, "%s second fork failed for child.\n");
             return 1;
         }
+
         // Child 2 Process
         else if (pid2 == 0) { 
-            dup2(fd2[0], STDIN_FILENO);
-            close(fd2[0]);
            
+            close(fd2[1]);
+            close(fd[0]);
+            close(fd[1]);
+            // Reads from the second pipe.
+            dup2(fd2[0], 0);
             // Exec system call for argv1 in child 2.
             status = execvp(argv2[0], argv2);
             if (status < 0) {
                 fprintf(stderr, "%s Execution of the second command failed.\n");
                 return 1;
-            }       
+            }
+            if (status >= 0) {
+                fprintf(stderr, "%s Second Execution has been done.\n");
+            }      
+
+
+
         } else { 
         // Parent process
         // tmp buff for change
-        char buff[N];
+        close(fd[1]);
+        close(fd2[0]);
+        char buff[5000];
         int readed;
         int writtenBytes = 0;
         int counter =0;
-        while( readed = read(fd[0],buff,N > 0 && counter < 4096)){
+        while( (readed = read(fd[0],&buff,N)) > 0 ){
             writtenBytes = write(fd2[1],buff,readed);
-            printf("Temporary buff is %d \n",writtenBytes);
+           // printf("Temporary buff is %d \n",writtenBytes);
             counter += 1;
         }
-            close(fd[1]); 
-            close(fd2[0]);
-            close(fd[0]); 
-            close(fd2[1]);
+              printf("Counter is %d \n",counter);
+            close(fd[0]);
+            close(fd[1]);
             waitpid(pid,NULL,0);
             waitpid(pid2,NULL,0);
         }
