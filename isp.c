@@ -44,12 +44,10 @@ int IsMultipleCommandParser(char commands[],char * newCommands[]){
 void processInput(char commands []){
     char* argv1[10];
     char* argv2[10];
-    // Get the mode from the command center OR separate from the command array.  
+    
     int mode;
     int N;
     
-    // printf("\n Before command decider.");
-
     if(commandDecider(commands,argv1,argv2) == 1){      
 
             getMode(&N,&mode);
@@ -58,40 +56,30 @@ void processInput(char commands []){
              
                 runMultipleCommandNormalMode(argv1,argv2);
 
-             //   printf("\n MULTIPLE COMMAND NORMAL MODE EXECUTED");
             } 
             if (mode == 2){
                 printf("N is :%d\n",N);
                 runMultipleCommandTappedMode(argv1,argv2,N);
-    //            printf("Mode is : %d",mode);
-            //    printf("\nMULTIPLE COMMAND TAPPED MODE EXECUTED");
+
             }  
 
         }else{
 
             runSingleCommand(argv1);
-        //    printf("\nSINGLE COMMAND EXECUTED");
     }
     
 }
 
 void getMode(int *N,int *mode){
-//    char commands[CommandSize]; 
-    printf("\nRing the format is: <N> <mode> \n");
- //   fgets(commands, CommandSize, stdin);
-//    commands[strcspn(commands, "\n\r")] = '\0';         // remove the newline at the end
-    //printf("commands promp is:%s",commands);
+
+        printf("\nRing the format is: <N> <mode> \n");
         int  input [2];
         scanf("%d %d",&input[0],&input[1]);
         printf(" N is %d",input[0]);
         printf(" mode is %d",input[1]);
-        
         *N = input[0];
         *mode = input[1];
- //   *N = commands[0]- '0';
- //   *mode = commands[2]- '0';
- //   printf("\nMode is %d \n",*mode);
- //   printf("N  is  %d \n",*N);
+
 }
 
 
@@ -114,9 +102,9 @@ int  commandDecider(char commands[],char * argv1,char * argv2){
 void runMultipleCommandNormalMode(char* argv1[], char* argv2[]){
 
     //Single pipe
-    int fd[2];
+    int pip[2];
     int status;
-    if(pipe(fd) < 0 ){
+    if(pipe(pip) < 0 ){
     	fprintf(stderr, "%sFailed pipe process \n");
     	return 1;
     }
@@ -129,9 +117,9 @@ void runMultipleCommandNormalMode(char* argv1[], char* argv2[]){
     } else if (pid == 0) { 
     // child 1 created.
         
-        dup2(fd[1], 1);
-        close(fd[0]);
-        close(fd[1]);
+        dup2(pip[1], 1);
+        close(pip[0]);
+        close(pip[1]);
         
         // Exec system call for argv1 in  child 1.
         status = execvp(argv1[0], argv1);
@@ -151,9 +139,9 @@ void runMultipleCommandNormalMode(char* argv1[], char* argv2[]){
         // Child 2 Process
         else if (pid2 == 0) { 
  
-            dup2(fd[0], 0); 
-            close(fd[1]);
-            close(fd[0]);
+            dup2(pip[0], 0); 
+            close(pip[1]);
+            close(pip[0]);
             // Exec system call for argv1 in child 2.
             status = execvp(argv2[0], argv2);
             if (status < 0) {
@@ -162,25 +150,26 @@ void runMultipleCommandNormalMode(char* argv1[], char* argv2[]){
             }  
         } else { 
         // Parent process
-            close(fd[1]); 
-            close(fd[0]); 
+            close(pip[1]); 
+            close(pip[0]); 
+            // Waits for the forks.
             waitpid(pid,NULL,0);
             waitpid(pid2,NULL,0);
         }
     }
-    close(fd[1]); 
-    close(fd[0]); 
+    close(pip[1]); 
+    close(pip[0]); 
 }
 
 
 void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
     //First and second pipe
-    int fd[2], fd2[2];
-    if(pipe(fd) < 0 ){
+    int firstPipe[2], secondPipe[2];
+    if(pipe(firstPipe) < 0 ){
     	fprintf(stderr, "%sFailed fork process \n");
     	return 1;
     }
-    if(pipe(fd2) < 0)
+    if(pipe(secondPipe) < 0)
     {
     	fprintf(stderr, "%sFailed second fork process \n");
     	return 1;
@@ -193,10 +182,8 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
     
     } else if (pid == 0) { 
         // child 1
-        close(fd[0]);
-    //    close(fd2[0]);
-    //    close(fd2[1]);
-        dup2(fd[1],1);
+        close(firstPipe[0]);
+        dup2(firstPipe[1],1);
         // Exec system call for argv1 in  child 1.
         status = execvp(argv1[0], argv1);
         if ( status < 0) {
@@ -216,12 +203,12 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
         }
         // Child 2 Process
         else if (pid2 == 0) {         
-            close(fd2[1]);
-            close(fd[0]);
-            close(fd[1]);
+            close(secondPipe[1]);
+            close(firstPipe[0]);
+            close(firstPipe[1]);
             // Reads from the second pipe.
-            dup2(fd2[0], 0);
-            // Exec system call for argv1 in child 2.
+            dup2(secondPipe[0], 0);
+            // Exec system call for argv2 in child 2.
             status = execvp(argv2[0], argv2);
             if (status < 0) {
                 fprintf(stderr, "%s Execution of the second command failed.\n");
@@ -232,8 +219,8 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
             }      
         } else { 
         // Parent process
-        close(fd[1]);
-        close(fd2[0]);
+        close(firstPipe[1]);
+        close(secondPipe[0]);
         char buff[256];
         int readed;
         int readCalls = 1;
@@ -241,52 +228,52 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
         int writtenBytes = 0;
         int transferedData = 0;
         int readedBytes = 0;
-        while( (readed = read(fd[0],&buff,N)) > 0 ){
-            writtenBytes = write(fd2[1],buff,readed);
+        while( (readed = read(firstPipe[0],&buff,N)) > 0 ){
+            writtenBytes = write(secondPipe[1],buff,readed);
            // printf("Temporary buff is %d \n",writtenBytes);
            transferedData += writtenBytes +readedBytes;
             readCalls = 1;
             writeCalls += 1;
         }
             
-            close(fd[0]);
-            close(fd2[1]);
+            close(firstPipe[0]);
+            close(secondPipe[1]);
             waitpid(pid,NULL,0);
             waitpid(pid2,NULL,0);
             printf(" \n \n character-count: %d\nread-call-count: %d\nwrite-call-count: %d \n",transferedData,readCalls,writeCalls);
         }
      
     }
-    close(fd[1]); 
-    close(fd2[0]);
-    close(fd[0]); 
-    close(fd2[1]);
+    close(firstPipe[1]); 
+    close(secondPipe[0]);
+    close(firstPipe[0]); 
+    close(secondPipe[1]);
     
 }
 
 // Done
 void runSingleCommand(char* argv1[]){
-	pid_t pid = fork(); // fork a child
+	pid_t pid = fork(); 
 	int status;
     if (pid < 0){
         fprintf(stderr, "\nFork failed.");
         return 1;
     }
-	if (pid == 0) { // child process
+	if (pid == 0) { 
+        // child process
 		status = execvp(argv1[0], argv1);
 		if ( status < 0) {
 		    fprintf(stderr, "%sCommand execution failed.\n");
 		    return 1;
 		}
 		return 0;
+
 	    } else { 
             // parent process
-		    wait(NULL); // wait for the child
+		    wait(NULL); // waits for the child
 	    }
 
 }
-
-
 void parseCommand(char command[], char* argv1[]) {
     int i =0;
     while(i < 11){  
