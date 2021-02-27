@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
 
         char commands[CommandSize];
     while(1){
-        printf("\nmyShell-$: ");
+        printf("\nisp$: ");
         fgets(commands, CommandSize, stdin);
         commands[strcspn(commands, "\n\r")] = '\0';
         // Replace line endings with string terminator.
