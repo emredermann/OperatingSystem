@@ -235,7 +235,7 @@ void runMultipleCommandTappedMode(char* argv1[], char* argv2[],int N){
         int readedBytes = 0;
         while( (readed = read(firstPipe[0],&buff,N)) > 0 ){
             writtenBytes = write(secondPipe[1],buff,readed);
-           transferedData += writtenBytes +readedBytes;
+           transferedData += writtenBytes ;
             readCalls = 1;
             writeCalls += 1;
         }
